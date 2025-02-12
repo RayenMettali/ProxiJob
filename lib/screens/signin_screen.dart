@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:icons_plus/icons_plus.dart';
 import '/screens/signup_screen.dart';
 import '/widgets/custom_scaffold.dart';
 
