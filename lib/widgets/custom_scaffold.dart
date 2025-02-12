@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class CustomScaffold extends StatelessWidget {
@@ -16,7 +15,7 @@ class CustomScaffold extends StatelessWidget {
       body: Stack(
         children: [
           Image.asset(
-            'assets/images/light_blue.jpg',
+            'assets/images/bg1.png',
             fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,

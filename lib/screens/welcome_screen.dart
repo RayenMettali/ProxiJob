@@ -29,13 +29,13 @@ class WelcomeScreen extends StatelessWidget {
                             text: 'Proxi Job\n',
                             style: TextStyle(
                               fontSize: 50.0,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w900,
                             )),
                         TextSpan(
-                            text:
-                                '\nDiscover Jobs That Match Your Skills and Ambitions!',
+                            text: '\nMake your dream job come to reality !',
                             style: TextStyle(
                               fontSize: 20,
+                              fontWeight: FontWeight.w500,
                               // height: 0,
                             ))
                       ],

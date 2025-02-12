@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proxi_job/screens/home_screen.dart';
 import '/screens/signin_screen.dart';
 import '/theme/theme.dart';
 import '/widgets/custom_scaffold.dart';
@@ -174,6 +175,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         'Please agree to the processing of personal data')),
                               );
                             }
+                            Navigator.push(context,
+                             MaterialPageRoute(builder: (context) => HomeScreen()),
+                            );
                           },
                           child: const Text('Sign up'),
                         ),
