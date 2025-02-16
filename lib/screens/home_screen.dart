@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:proxi_job/theme/theme.dart';
+import 'package:proxi_job/widgets/CustomSearch.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,6 +26,17 @@ class _HomeScreenState extends State<HomeScreen> {
             color: Color.fromRGBO(65, 111, 223, 1),
           ),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () {
+              showSearch(
+                context: context,
+                delegate: CustomSearchDelegate(),
+              );
+            },
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(80.0),
           child: Padding(
