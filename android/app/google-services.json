@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "301094016007",
+    "project_id": "proxi-job",
+    "storage_bucket": "proxi-job.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:301094016007:android:477482f17aecbec9f806a2",
+        "android_client_info": {
+          "package_name": "com.example.proxi_job"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDaMcXQgAVaa5LejBmVjs7JxCtKjey0Uos"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
