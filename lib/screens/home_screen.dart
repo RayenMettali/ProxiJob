@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:proxi_job/models/cardModel.dart';
 import 'package:proxi_job/models/categoriesModel.dart';
 import 'package:proxi_job/widgets/CustomSearch.dart';
+import 'package:proxi_job/services/auth_service.dart';
+import 'package:proxi_job/screens/signin_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
-  @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
@@ -109,6 +109,30 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
+              ),
+            ),
+            SizedBox(height: 240.0),
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: ListTile(
+                leading: Icon(Icons.logout),
+                title: Text('Logout'),
+                textColor: Colors.red,
+                iconColor: Colors.red,
+                titleTextStyle: TextStyle(
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.w600,
+                ),
+                onTap: () async {
+                  AuthService authService = AuthService();
+                  await authService.signout(context: context);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SignInScreen(),
+                    ),
+                  );
+                },
               ),
             ),
           ],

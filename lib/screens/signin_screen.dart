@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:proxi_job/screens/home_screen.dart';
+import 'package:proxi_job/services/auth_service.dart';
 import '/screens/signup_screen.dart';
 import '/widgets/custom_scaffold.dart';
 
@@ -15,6 +16,16 @@ class SignInScreen extends StatefulWidget {
 class _SignInScreenState extends State<SignInScreen> {
   final _formSignInKey = GlobalKey<FormState>();
   bool rememberPassword = true;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return CustomScaffold(
@@ -55,6 +66,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         height: 40.0,
                       ),
                       TextFormField(
+                        controller: _emailController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter Email';
@@ -85,6 +97,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         height: 25.0,
                       ),
                       TextFormField(
+                        controller: _passwordController,
                         obscureText: true,
                         obscuringCharacter: '*',
                         validator: (value) {
@@ -146,24 +159,24 @@ class _SignInScreenState extends State<SignInScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
-                            if (_formSignInKey.currentState!.validate() &&
-                                rememberPassword) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Processing Data'),
-                                ),
-                              );
-                            } else if (!rememberPassword) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'Please agree to the processing of personal data')),
-                              );
+                          onPressed: () async {
+                            if (_formSignInKey.currentState!.validate()) {
+                              try {
+                                AuthService authService = AuthService();
+                                await authService.signin(
+                                  email: _emailController.text.trim(),
+                                  password: _passwordController.text.trim(),
+                                  context: context,
+                                );
+                                // Only navigate if signup is successful
+                              } catch (e) {
+                                // Handle authentication errors (e.g., show snackbar)
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Signup failed: $e')),
+                                );
+                                // Do not navigate if an error occurs
+                              }
                             }
-                            Navigator.push(context,
-                             MaterialPageRoute(builder: (context) => HomeScreen()),
-                            );
                           },
                           child: const Text('Sign in'),
                         ),
