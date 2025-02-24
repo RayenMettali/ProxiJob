@@ -4,13 +4,34 @@ import 'package:proxi_job/models/categoriesModel.dart';
 import 'package:proxi_job/widgets/CustomSearch.dart';
 import 'package:proxi_job/services/auth_service.dart';
 import 'package:proxi_job/screens/signin_screen.dart';
+import 'package:proxi_job/screens/profile_screen.dart'; // Import the ProfileScreen
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              ProfileScreen(), // Navigate to ProfileScreen
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     List<CategoriesModel> categories = CategoriesModel.getCategories();
@@ -55,58 +76,30 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
 
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-       DrawerHeader(
-  decoration: BoxDecoration(
-    color: Colors.white, // Background color
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black,
-        blurRadius: 10.0,
-      ),
-    ],
-  ),
-  child: Padding(
-    padding: EdgeInsets.all(20),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.center, // Center content vertically
-      children: [
-        CircleAvatar(
-          radius: 40,
-          backgroundImage: AssetImage('assets/images/profile_picture.png'), // Profile picture
-        ),
-        SizedBox(width: 20), // Space between image and text
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'John Doe',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.white, // Set the background color to white
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black,
+                    blurRadius: 10.0,
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: Text(
+                  'Profile Name',
+                  style: TextStyle(
+                    color: Colors.black, // Set the text color to black
+                    fontSize: 24,
+                  ),
                 ),
               ),
-              SizedBox(height: 5),
-              Text(
-                'Software Developer', // Ensuring full visibility
-                style: TextStyle(
-                  color: Colors.grey[700],
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  ),
-),
-
+            ),
             SizedBox(height: 20.0),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10.0),
@@ -340,6 +333,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
         selectedItemColor: Colors.blueAccent,
         unselectedItemColor: Colors.grey,
         items: const <BottomNavigationBarItem>[
