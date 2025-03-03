@@ -40,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.grey[300],
         toolbarHeight: 100,
         centerTitle: true,
         elevation: 4.0,

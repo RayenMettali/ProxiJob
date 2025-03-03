@@ -1,0 +1,2 @@
+C:/Users/rayen/Documents/ProxiJob/android/app/.cxx/Debug/13z6z6s3/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/rayen/Documents/ProxiJob/android/app/.cxx/Debug/13z6z6s3/armeabi-v7a/CMakeFiles/rebuild_cache.dir

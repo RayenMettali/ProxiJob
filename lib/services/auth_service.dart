@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:proxi_job/screens/home_screen.dart';
+import 'package:proxi_job/screens/onboarding_screen.dart';
 import 'package:proxi_job/screens/signin_screen.dart';
 
 class AuthService {
@@ -18,7 +18,7 @@ class AuthService {
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-              builder: (BuildContext context) => const HomeScreen()));
+              builder: (BuildContext context) => OnboardingScreen()));
       return true;
     } on FirebaseAuthException catch (e) {
       String message = '';
@@ -71,7 +71,7 @@ class AuthService {
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-              builder: (BuildContext context) => const HomeScreen()));
+              builder: (BuildContext context) =>  OnboardingScreen()));
       return true;
     } on FirebaseAuthException catch (e) {
       String message = '';
