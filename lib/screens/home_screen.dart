@@ -3,8 +3,10 @@ import 'package:proxi_job/models/cardModel.dart';
 import 'package:proxi_job/models/categoriesModel.dart';
 import 'package:proxi_job/widgets/CustomSearch.dart';
 import 'package:proxi_job/services/auth_service.dart';
+import 'package:proxi_job/services/user_service.dart';
+import 'package:proxi_job/models/UserModel.dart';
 import 'package:proxi_job/screens/signin_screen.dart';
-import 'package:proxi_job/screens/profile_screen.dart'; // Import the ProfileScreen
+import 'package:proxi_job/screens/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,6 +17,34 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  final UserService _userService = UserService();
+  UserModel? _currentUser;
+  bool _isLoadingUser = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    setState(() {
+      _isLoadingUser = true;
+    });
+
+    try {
+      UserModel? user = await _userService.getCurrentUser();
+      setState(() {
+        _currentUser = user;
+        _isLoadingUser = false;
+      });
+    } catch (e) {
+      print('Error loading user data: $e');
+      setState(() {
+        _isLoadingUser = false;
+      });
+    }
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -25,8 +55,15 @@ class _HomeScreenState extends State<HomeScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              ProfileScreen(), // Navigate to ProfileScreen
+          builder: (context) => UserProfileScreen(),
+        ),
+      ).then((_) => _loadUserData()); // Refresh user data when returning from profile
+    }
+    if (index == 0) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomeScreen(),
         ),
       );
     }
@@ -40,12 +77,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.grey[300],
+        backgroundColor: const Color.fromARGB(255, 41, 72, 183),
         toolbarHeight: 100,
         centerTitle: true,
         elevation: 4.0,
         title: const Text(
-          'Home Page',
+          'Proxi Job',
           style: TextStyle(
             fontSize: 22.0,
             fontWeight: FontWeight.w900,
@@ -79,96 +116,201 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            DrawerHeader(
-  decoration: BoxDecoration(
-    color: Colors.white, // Background color
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black,
-        blurRadius: 10.0,
-      ),
-    ],
-  ),
-  child: Padding(
-    padding: EdgeInsets.all(20),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.center, // Center content vertically
-      children: [
-        CircleAvatar(
-          radius: 40,
-          backgroundImage: AssetImage('assets/images/profile_picture.png'), // Profile picture
-        ),
-        SizedBox(width: 20), // Space between image and text
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'John Doe',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 5),
-              Text(
-                'Software Developer', // Ensuring full visibility
-                style: TextStyle(
-                  color: Colors.grey[700],
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  ),
-),
-
-            SizedBox(height: 20.0),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10.0),
-              child: Container(
-                child: Column(
-                  children: const [
-                    ListTile(
-                      leading: Icon(Icons.home),
-                      title: Text('Home'),
-                    ),
-                    Divider(),
-                    SizedBox(height: 10.0), // Adds a line between items
-                    ListTile(
-                      leading: Icon(Icons.business),
-                      title: Text('Business'),
-                    ),
-                    Divider(),
-                    SizedBox(height: 10.0),
-                    ListTile(
-                      leading: Icon(Icons.settings),
-                      title: Text('Settings'),
-                    ),
-                    Divider(),
-                    SizedBox(height: 10.0),
-                    ListTile(
-                      leading: Icon(Icons.person),
-                      title: Text('Profile'),
+            // User Profile Header in Drawer
+            _isLoadingUser 
+            ? const DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 10.0,
                     ),
                   ],
                 ),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            : DrawerHeader(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 10.0,
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // User profile image
+                          CircleAvatar(
+                            radius: 40,
+                            backgroundImage: _currentUser?.photoUrl != null
+                                ? NetworkImage(_currentUser!.photoUrl!)
+                                : null,
+                            child: _currentUser?.photoUrl == null
+                                ? Text(
+                                    _currentUser?.name?.substring(0, 1).toUpperCase() ??
+                                        _currentUser?.email.substring(0, 1).toUpperCase() ?? 
+                                        "U",
+                                    style: const TextStyle(fontSize: 30),
+                                  )
+                                : null,
+                          ),
+                          const SizedBox(width: 15),
+                          // User name and email
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  _currentUser?.name ?? 'No Name',
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  _currentUser?.email ?? '',
+                                  style: TextStyle(
+                                    color: Colors.grey[700],
+                                    fontSize: 14,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      // Phone number and additional info summary
+                      if (_currentUser != null) ...[
+                        const SizedBox(height: 12),
+                        // Show one piece of additional info if available
+                        if (_currentUser!.additionalInfo != null && _currentUser!.additionalInfo!.isNotEmpty) 
+                          Text(
+                            '${_currentUser!.additionalInfo!.entries.first.key}: ${_currentUser!.additionalInfo!.entries.first.value}',
+                            style: TextStyle(
+                              color: Colors.grey[800],
+                              fontSize: 14,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+
+            // Drawer Menu Items
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                children: [
+                  const ListTile(
+                    leading: Icon(Icons.home),
+                    title: Text('Home'),
+                  ),
+                  const Divider(),
+                  const SizedBox(height: 10.0),
+                  const ListTile(
+                    leading: Icon(Icons.business),
+                    title: Text('Business'),
+                  ),
+                  const Divider(),
+                  const SizedBox(height: 10.0),
+                  const ListTile(
+                    leading: Icon(Icons.settings),
+                    title: Text('Settings'),
+                  ),
+                  const Divider(),
+                  const SizedBox(height: 10.0),
+                  // Profile menu item - navigate to profile screen
+                  ListTile(
+                    leading: const Icon(Icons.person),
+                    title: const Text('Profile'),
+                    onTap: () {
+                      Navigator.pop(context); // Close drawer
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UserProfileScreen(),
+                        ),
+                      ).then((_) => _loadUserData()); // Reload user data after returning
+                    },
+                  ),
+                  const Divider(),
+                  const SizedBox(height: 10.0),
+                  
+                  // Show all additional info in a separate section
+                  if (_currentUser != null && 
+                      _currentUser!.additionalInfo != null && 
+                      _currentUser!.additionalInfo!.length > 1) ...[
+                    const Padding(
+                      padding: EdgeInsets.only(left: 16.0, top: 16.0, bottom: 8.0),
+                      child: Text(
+                        'Additional Information',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Color.fromARGB(255, 41, 72, 183),
+                        ),
+                      ),
+                    ),
+                    
+                    // Skip the first item as it's already shown in the header
+                    ..._currentUser!.additionalInfo!.entries.skip(1).map((entry) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${entry.key}:',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '${entry.value}',
+                                style: TextStyle(
+                                  color: Colors.grey[800],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    const Divider(),
+                    const SizedBox(height: 10.0),
+                  ],
+                ],
               ),
             ),
-            SizedBox(height: 240.0),
+            
+            // Logout button
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: ListTile(
-                leading: Icon(Icons.logout),
-                title: Text('Logout'),
+                leading: const Icon(Icons.logout),
+                title: const Text('Logout'),
                 textColor: Colors.red,
                 iconColor: Colors.red,
-                titleTextStyle: TextStyle(
+                titleTextStyle: const TextStyle(
                   fontSize: 20.0,
                   fontWeight: FontWeight.w600,
                 ),
@@ -189,14 +331,13 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
 
       //body of the app
-
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.only(bottom: 20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 40.0),
+              const SizedBox(height: 30.0),
 
               // Categories Section
               const Padding(
@@ -250,7 +391,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              const SizedBox(height: 60.0),
+              const SizedBox(height: 30.0),
 
               // Latest Jobs Section
               const Padding(
@@ -298,7 +439,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               fontWeight: FontWeight.w900,
                             ),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             height: 10.0,
                           ),
                           Text(
@@ -323,7 +464,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             width: 250.0,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blueAccent,
+                                backgroundColor: const Color.fromARGB(255, 41, 72, 183),
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 12.0),
                                 shape: RoundedRectangleBorder(
@@ -363,7 +504,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        selectedItemColor: Colors.blueAccent,
+        selectedItemColor: const Color.fromARGB(255, 41, 72, 183),
         unselectedItemColor: Colors.grey,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -385,7 +526,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: const Color.fromARGB(255, 41, 72, 183),
         onPressed: () {
           // TODO: Define Floating Action Button Action
           ScaffoldMessenger.of(context).showSnackBar(

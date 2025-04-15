@@ -1,24 +1,41 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:proxi_job/screens/onboarding_screen.dart';
+import 'package:proxi_job/screens/home_screen.dart';
 import 'package:proxi_job/screens/signin_screen.dart';
 
 class AuthService {
+   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   Future<bool> signup({
     required String email,
     required String password,
+    required String name,
+    String? phoneNumber,
     required BuildContext context,
   }) async {
     try {
-      await FirebaseAuth.instance
+      UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
+
+       // Get user ID
+      String uid = userCredential.user!.uid;
+      
+      // Save additional user info to Firestore
+      await _firestore.collection('users').doc(uid).set({
+        'uid': uid,
+        'email': email,
+        'name': name,
+        'phoneNumber': phoneNumber,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
       await Future.delayed(const Duration(seconds: 0));
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-              builder: (BuildContext context) => OnboardingScreen()));
+              builder: (BuildContext context) => HomeScreen()));
       return true;
     } on FirebaseAuthException catch (e) {
       String message = '';
@@ -71,7 +88,7 @@ class AuthService {
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-              builder: (BuildContext context) =>  OnboardingScreen()));
+              builder: (BuildContext context) =>  HomeScreen()));
       return true;
     } on FirebaseAuthException catch (e) {
       String message = '';

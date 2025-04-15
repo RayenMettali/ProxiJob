@@ -1,119 +1,328 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:line_awesome_flutter/line_awesome_flutter.dart';
-import 'package:proxi_job/models/user.dart';
-import 'package:proxi_job/utils/user_preferences.dart';
+import 'package:proxi_job/models/UserModel.dart';
+import 'package:proxi_job/screens/edit_profile_screen.dart';
+import 'package:proxi_job/screens/welcome_screen.dart';
+import 'package:proxi_job/services/user_service.dart';
 
-class ProfileScreen extends StatefulWidget {
+class UserProfileScreen extends StatefulWidget {
+  const UserProfileScreen({Key? key}) : super(key: key);
+
   @override
-  _ProfileScreenState createState() => _ProfileScreenState();
+  _UserProfileScreenState createState() => _UserProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _UserProfileScreenState extends State<UserProfileScreen> {
+  final UserService _userService = UserService();
+  UserModel? _currentUser;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      UserModel? user = await _userService.getCurrentUser();
+      setState(() {
+        _currentUser = user;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading user: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final user = UserPreferences.myUser;
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_currentUser == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Profile')),
+        body: const Center(
+          child: Text('No user logged in. Please sign in.'),
+        ),
+      );
+    }
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.blue,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: const Icon(LineAwesomeIcons.arrow_left_solid, color: Colors.white),
-        ),
-        centerTitle: true,
-        title: Text(
-          'Profile',
-          style: Theme.of(context)
-              .textTheme
-              .headlineMedium
-              ?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
+        title: const Text('User Profile'),
+        actions: [
+          IconButton(
+            color: Colors.red,
+            icon: const Icon(Icons.exit_to_app),
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              // Navigate to login page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (e) => const WelcomeScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Column(
+      body: StreamBuilder<UserModel?>(
+        stream: _userService.userStream(),
+        initialData: _currentUser,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          UserModel? user = snapshot.data;
+          if (user == null) {
+            return const Center(child: Text('User not found'));
+          }
+
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  // Profile Avatar
                   CircleAvatar(
                     radius: 60,
-                    backgroundImage: AssetImage("assets/images/profile_picture.png"),
+                    backgroundImage: user.photoUrl != null
+                        ? NetworkImage(user.photoUrl!)
+                        : null,
+                    child: user.photoUrl == null
+                        ? Text(
+                            user.name?.substring(0, 1).toUpperCase() ??
+                                user.email.substring(0, 1).toUpperCase(),
+                            style: const TextStyle(fontSize: 36),
+                          )
+                        : null,
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    user.name,
-                    style: const TextStyle(
-                        fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
-                  ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Text(
-                          'Edit Profile',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // Edit profile button
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditProfileScreen(user: user),
                         ),
-                        SizedBox(width: 10),
-                        Icon(LineAwesomeIcons.edit, color: Colors.white),
-                      ],
+                      ).then((_) => _loadUser()); // Refresh after editing
+                    },
+                    icon: const Icon(Icons.edit),
+                    label: const Text('Edit Profile'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // All user information in a single card
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Name section
+                          Row(
+                            children: [
+                              const Icon(Icons.person, size: 28, color: Colors.blue),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Text(
+                                  user.name ?? 'No Name',
+                                  style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          
+                          const Divider(height: 32),
+                          
+                          // Contact information section
+                          const Text(
+                            'Contact Information',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          
+                          // Email
+                          Row(
+                            children: [
+                              const Icon(Icons.email, color: Colors.grey),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Text(
+                                  user.email,
+                                  style: const TextStyle(fontSize: 18),
+                                ),
+                              ),
+                            ],
+                          ),
+                          
+                          const SizedBox(height: 12),
+                          
+                          // Phone number
+                          if (user.phoneNumber != null && user.phoneNumber!.isNotEmpty)
+                            Row(
+                              children: [
+                                const Icon(Icons.phone, color: Colors.grey),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Text(
+                                    user.phoneNumber!,
+                                    style: const TextStyle(fontSize: 18),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          
+                          if (user.name == null) ...[
+                            const SizedBox(height: 20),
+                            ElevatedButton(
+                              onPressed: () {
+                                _showNameInputDialog(context);
+                              },
+                              child: const Text('Add Your Name'),
+                            ),
+                          ],
+                          
+                          // Additional information section
+                          if (user.additionalInfo != null &&
+                              user.additionalInfo!.isNotEmpty) ...[
+                            const Divider(height: 32),
+                            const Text(
+                              'Additional Information',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            ...user.additionalInfo!.entries.map((entry) {
+                              // Skip phone number as it's displayed separately
+                              if (entry.key == 'phoneNumber') return const SizedBox.shrink();
+                              
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12.0),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(Icons.info_outline, color: Colors.grey),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            entry.key,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            entry.value.toString(),
+                                            style: const TextStyle(fontSize: 18),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ],
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              buildInfoCard('Email', user.email),
-              buildInfoCard('Phone Number', user.phoneNumber),
-              buildInfoCard('Work Field', user.workField),
-              buildInfoCard('About', user.about),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget buildInfoCard(String title, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue,
+  // Dialog to add name if not already set
+  void _showNameInputDialog(BuildContext context) {
+    final TextEditingController _nameController = TextEditingController();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Add Your Name'),
+          content: TextField(
+            controller: _nameController,
+            decoration: const InputDecoration(hintText: 'Enter your name'),
+            textCapitalization: TextCapitalization.words,
           ),
-        ),
-        const SizedBox(height: 5),
-        SizedBox(
-          width: double.infinity, // Ensures full width
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 16), // Adds padding inside the box
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.blue, width: 1.5), // Blue border
-              borderRadius: BorderRadius.circular(12),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.pop(context);
+              },
             ),
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 16, color: Colors.black),
+            TextButton(
+              child: const Text('Save'),
+              onPressed: () async {
+                if (_nameController.text.trim().isNotEmpty &&
+                    _currentUser != null) {
+                  try {
+                    await _userService.updateUserName(
+                        _currentUser!.uid, _nameController.text.trim());
+                    Navigator.pop(context);
+                  } catch (e) {
+                    print('Error updating name: $e');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content:
+                              Text('Failed to update name. Please try again.')),
+                    );
+                  }
+                }
+              },
             ),
-          ),
-        ),
-        const SizedBox(height: 15), // Space between sections
-      ],
+          ],
+        );
+      },
     );
   }
 }

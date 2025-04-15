@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:proxi_job/screens/welcome_screen.dart';
-import 'package:proxi_job/screens/edit_profile_page.dart'; // Ensure this file exists
-import 'firebase_options.dart'; // Ensure this file exists
+import 'firebase_options.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

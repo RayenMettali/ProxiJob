@@ -16,11 +16,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool agreePersonalData = true;
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _nameController.dispose();
+    _phoneNumberController.dispose();
     super.dispose();
   }
 
@@ -67,6 +71,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                       // full name
                       TextFormField(
+                        controller: _nameController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter Full name';
@@ -76,6 +81,37 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         decoration: InputDecoration(
                           label: const Text('Full Name'),
                           hintText: 'Enter Full Name',
+                          hintStyle: const TextStyle(
+                            color: Colors.black26,
+                          ),
+                          border: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Colors.black12, // Default border color
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Colors.black12, // Default border color
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 25.0,
+                      ),
+                      TextFormField(
+                        controller: _phoneNumberController,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your phone number';
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          label: const Text('Phone Number'),
+                          hintText: 'Enter Phone Number',
                           hintStyle: const TextStyle(
                             color: Colors.black26,
                           ),
@@ -178,6 +214,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 await authService.signup(
                                   email: _emailController.text.trim(),
                                   password: _passwordController.text.trim(),
+                                  name: _nameController.text.trim(),
+                                  phoneNumber: _phoneNumberController.text.trim(),
                                   context: context,
                                 );
                                 // Only navigate if signup is successful
