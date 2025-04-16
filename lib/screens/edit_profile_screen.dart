@@ -166,7 +166,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                           keyboardType: TextInputType.phone,
                           validator: (value) {
-                            if (value != null && value.isNotEmpty && value.length < 10) {
+                            if (value != null && value.isNotEmpty && value.length != 8) {
                               return 'Please enter a valid phone number';
                             }
                             return null;

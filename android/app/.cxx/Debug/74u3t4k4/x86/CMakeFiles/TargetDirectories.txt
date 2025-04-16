@@ -1,0 +1,2 @@
+C:/Users/rayen/Documents/ProxiJob/android/app/.cxx/Debug/74u3t4k4/x86/CMakeFiles/edit_cache.dir
+C:/Users/rayen/Documents/ProxiJob/android/app/.cxx/Debug/74u3t4k4/x86/CMakeFiles/rebuild_cache.dir

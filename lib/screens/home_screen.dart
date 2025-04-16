@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:proxi_job/models/cardModel.dart';
 import 'package:proxi_job/models/categoriesModel.dart';
+import 'package:proxi_job/screens/map_screen.dart';
 import 'package:proxi_job/widgets/CustomSearch.dart';
 import 'package:proxi_job/services/auth_service.dart';
 import 'package:proxi_job/services/user_service.dart';
@@ -56,6 +57,14 @@ class _HomeScreenState extends State<HomeScreen> {
         context,
         MaterialPageRoute(
           builder: (context) => UserProfileScreen(),
+        ),
+      ).then((_) => _loadUserData()); // Refresh user data when returning from profile
+    }
+    if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MapPage(),
         ),
       ).then((_) => _loadUserData()); // Refresh user data when returning from profile
     }
