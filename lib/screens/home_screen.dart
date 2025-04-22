@@ -6,10 +6,12 @@ import 'package:proxi_job/widgets/CustomSearch.dart';
 import 'package:proxi_job/services/auth_service.dart';
 import 'package:proxi_job/services/user_service.dart';
 import 'package:proxi_job/services/job_service.dart';
+import 'package:proxi_job/services/job_application_service.dart';
 import 'package:proxi_job/models/UserModel.dart';
 import 'package:proxi_job/screens/signin_screen.dart';
 import 'package:proxi_job/screens/profile_screen.dart';
 import 'package:proxi_job/screens/add_job_screen.dart';
+import 'package:proxi_job/screens/business_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   final UserService _userService = UserService();
   final JobService _jobService = JobService();
+  final JobApplicationService _applicationService = JobApplicationService();
   UserModel? _currentUser;
   bool _isLoadingUser = true;
   Stream<List<Cardmodel>>? _jobsStream;
@@ -63,8 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
         MaterialPageRoute(
           builder: (context) => UserProfileScreen(),
         ),
-      ).then((_) =>
-          _loadUserData()); // Refresh user data when returning from profile
+      ).then((_) => _loadUserData());
     }
     if (index == 2) {
       Navigator.push(
@@ -72,8 +74,15 @@ class _HomeScreenState extends State<HomeScreen> {
         MaterialPageRoute(
           builder: (context) => MapPage(),
         ),
-      ).then((_) =>
-          _loadUserData()); // Refresh user data when returning from profile
+      ).then((_) => _loadUserData());
+    }
+    if (index == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const BusinessScreen(),
+        ),
+      );
     }
     if (index == 0) {
       Navigator.pushReplacement(
@@ -525,14 +534,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                       borderRadius: BorderRadius.circular(8.0),
                                     ),
                                   ),
-                                  onPressed: () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content:
-                                            Text('Applied to ${job.title}!'),
-                                        duration: const Duration(seconds: 2),
-                                      ),
-                                    );
+                                  onPressed: () async {
+                                    try {
+                                      await _applicationService.applyForJob(
+                                          job.id, job.title);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                              'Successfully applied for the job!'),
+                                          duration: Duration(seconds: 2),
+                                        ),
+                                      );
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(e.toString()),
+                                          duration: const Duration(seconds: 2),
+                                        ),
+                                      );
+                                    }
                                   },
                                   child: const Text(
                                     'Apply to Job',
