@@ -5,9 +5,11 @@ import 'package:proxi_job/screens/map_screen.dart';
 import 'package:proxi_job/widgets/CustomSearch.dart';
 import 'package:proxi_job/services/auth_service.dart';
 import 'package:proxi_job/services/user_service.dart';
+import 'package:proxi_job/services/job_service.dart';
 import 'package:proxi_job/models/UserModel.dart';
 import 'package:proxi_job/screens/signin_screen.dart';
 import 'package:proxi_job/screens/profile_screen.dart';
+import 'package:proxi_job/screens/add_job_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,13 +21,16 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   final UserService _userService = UserService();
+  final JobService _jobService = JobService();
   UserModel? _currentUser;
   bool _isLoadingUser = true;
+  Stream<List<Cardmodel>>? _jobsStream;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _jobsStream = _jobService.getJobs();
   }
 
   Future<void> _loadUserData() async {
@@ -58,7 +63,8 @@ class _HomeScreenState extends State<HomeScreen> {
         MaterialPageRoute(
           builder: (context) => UserProfileScreen(),
         ),
-      ).then((_) => _loadUserData()); // Refresh user data when returning from profile
+      ).then((_) =>
+          _loadUserData()); // Refresh user data when returning from profile
     }
     if (index == 2) {
       Navigator.push(
@@ -66,7 +72,8 @@ class _HomeScreenState extends State<HomeScreen> {
         MaterialPageRoute(
           builder: (context) => MapPage(),
         ),
-      ).then((_) => _loadUserData()); // Refresh user data when returning from profile
+      ).then((_) =>
+          _loadUserData()); // Refresh user data when returning from profile
     }
     if (index == 0) {
       Navigator.pushReplacement(
@@ -81,7 +88,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     List<CategoriesModel> categories = CategoriesModel.getCategories();
-    List<Cardmodel> cards = Cardmodel.getCards();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -126,101 +132,106 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             // User Profile Header in Drawer
-            _isLoadingUser 
-            ? const DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 10.0,
+            _isLoadingUser
+                ? const DrawerHeader(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 10.0,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: Center(child: CircularProgressIndicator()),
-              )
-            : DrawerHeader(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 10.0,
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                : DrawerHeader(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 10.0,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                    child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // User profile image
-                          CircleAvatar(
-                            radius: 40,
-                            backgroundImage: _currentUser?.photoUrl != null
-                                ? NetworkImage(_currentUser!.photoUrl!)
-                                : null,
-                            child: _currentUser?.photoUrl == null
-                                ? Text(
-                                    _currentUser?.name?.substring(0, 1).toUpperCase() ??
-                                        _currentUser?.email.substring(0, 1).toUpperCase() ?? 
-                                        "U",
-                                    style: const TextStyle(fontSize: 30),
-                                  )
-                                : null,
-                          ),
-                          const SizedBox(width: 15),
-                          // User name and email
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  _currentUser?.name ?? 'No Name',
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              // User profile image
+                              CircleAvatar(
+                                radius: 40,
+                                backgroundImage: _currentUser?.photoUrl != null
+                                    ? NetworkImage(_currentUser!.photoUrl!)
+                                    : null,
+                                child: _currentUser?.photoUrl == null
+                                    ? Text(
+                                        _currentUser?.name
+                                                ?.substring(0, 1)
+                                                .toUpperCase() ??
+                                            _currentUser?.email
+                                                .substring(0, 1)
+                                                .toUpperCase() ??
+                                            "U",
+                                        style: const TextStyle(fontSize: 30),
+                                      )
+                                    : null,
+                              ),
+                              const SizedBox(width: 15),
+                              // User name and email
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      _currentUser?.name ?? 'No Name',
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      _currentUser?.email ?? '',
+                                      style: TextStyle(
+                                        color: Colors.grey[700],
+                                        fontSize: 14,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(height: 5),
-                                Text(
-                                  _currentUser?.email ?? '',
-                                  style: TextStyle(
-                                    color: Colors.grey[700],
-                                    fontSize: 14,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
+
+                          // Phone number and additional info summary
+                          if (_currentUser != null) ...[
+                            const SizedBox(height: 12),
+                            // Show one piece of additional info if available
+                            if (_currentUser!.additionalInfo != null &&
+                                _currentUser!.additionalInfo!.isNotEmpty)
+                              Text(
+                                '${_currentUser!.additionalInfo!.entries.first.key}: ${_currentUser!.additionalInfo!.entries.first.value}',
+                                style: TextStyle(
+                                  color: Colors.grey[800],
+                                  fontSize: 14,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                          ],
                         ],
                       ),
-                      
-                      // Phone number and additional info summary
-                      if (_currentUser != null) ...[
-                        const SizedBox(height: 12),
-                        // Show one piece of additional info if available
-                        if (_currentUser!.additionalInfo != null && _currentUser!.additionalInfo!.isNotEmpty) 
-                          Text(
-                            '${_currentUser!.additionalInfo!.entries.first.key}: ${_currentUser!.additionalInfo!.entries.first.value}',
-                            style: TextStyle(
-                              color: Colors.grey[800],
-                              fontSize: 14,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                      ],
-                    ],
+                    ),
                   ),
-                ),
-              ),
 
             // Drawer Menu Items
             Expanded(
@@ -256,18 +267,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         MaterialPageRoute(
                           builder: (context) => UserProfileScreen(),
                         ),
-                      ).then((_) => _loadUserData()); // Reload user data after returning
+                      ).then((_) =>
+                          _loadUserData()); // Reload user data after returning
                     },
                   ),
                   const Divider(),
                   const SizedBox(height: 10.0),
-                  
+
                   // Show all additional info in a separate section
-                  if (_currentUser != null && 
-                      _currentUser!.additionalInfo != null && 
+                  if (_currentUser != null &&
+                      _currentUser!.additionalInfo != null &&
                       _currentUser!.additionalInfo!.length > 1) ...[
                     const Padding(
-                      padding: EdgeInsets.only(left: 16.0, top: 16.0, bottom: 8.0),
+                      padding:
+                          EdgeInsets.only(left: 16.0, top: 16.0, bottom: 8.0),
                       child: Text(
                         'Additional Information',
                         style: TextStyle(
@@ -277,11 +290,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                    
+
                     // Skip the first item as it's already shown in the header
-                    ..._currentUser!.additionalInfo!.entries.skip(1).map((entry) {
+                    ..._currentUser!.additionalInfo!.entries
+                        .skip(1)
+                        .map((entry) {
                       return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 4.0),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -310,7 +326,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            
+
             // Logout button
             Padding(
               padding: const EdgeInsets.all(10.0),
@@ -416,93 +432,123 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 20.0),
 
-              // Job Cards List
-              ListView.builder(
-                itemCount: cards.length,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemBuilder: (BuildContext context, int index) {
-                  return Card(
-                    margin: const EdgeInsets.symmetric(
-                        horizontal: 20.0, vertical: 10.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    elevation: 4.0,
-                    child: Padding(
-                      padding: const EdgeInsets.all(15.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            cards[index].image,
-                            height: 100.0,
-                            width: 100.0,
-                          ),
-                          const SizedBox(height: 30.0),
-                          Text(
-                            cards[index].title,
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 18.0,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 10.0,
-                          ),
-                          Text(
-                            cards[index].description,
-                            style: const TextStyle(
-                              color: Colors.grey,
-                              fontSize: 14.0,
-                            ),
-                          ),
-                          const SizedBox(height: 20.0),
-                          Text(
-                            cards[index].jobDescription,
-                            style: TextStyle(
-                              color: Colors.grey[700],
-                              fontSize: 14.0,
-                            ),
-                          ),
-                          const SizedBox(height: 15.0),
+              // Job Cards List - Updated to use StreamBuilder
+              StreamBuilder<List<Cardmodel>>(
+                stream: _jobsStream,
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text('Error: ${snapshot.error}'),
+                    );
+                  }
 
-                          // Apply Button
-                          SizedBox(
-                            width: 250.0,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(255, 41, 72, 183),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12.0),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                              ),
-                              onPressed: () {
-                                // TODO: Define Apply Button Action
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        'Applied to ${cards[index].title}!'),
-                                    duration: const Duration(seconds: 2),
-                                  ),
-                                );
-                              },
-                              child: const Text(
-                                'Apply to Job',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+
+                  final jobs = snapshot.data ?? [];
+
+                  if (jobs.isEmpty) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: Text(
+                          'No jobs posted yet. Be the first to post a job!',
+                          style: TextStyle(fontSize: 16),
+                        ),
                       ),
-                    ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    itemCount: jobs.length,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemBuilder: (BuildContext context, int index) {
+                      final job = jobs[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 20.0, vertical: 10.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        elevation: 4.0,
+                        child: Padding(
+                          padding: const EdgeInsets.all(15.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                job.image,
+                                height: 100.0,
+                                width: 100.0,
+                              ),
+                              const SizedBox(height: 30.0),
+                              Text(
+                                job.title,
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              const SizedBox(height: 10.0),
+                              Text(
+                                job.description,
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 14.0,
+                                ),
+                              ),
+                              const SizedBox(height: 20.0),
+                              Text(
+                                job.jobDescription,
+                                style: TextStyle(
+                                  color: Colors.grey[700],
+                                  fontSize: 14.0,
+                                ),
+                              ),
+                              const SizedBox(height: 15.0),
+
+                              // Apply Button
+                              SizedBox(
+                                width: 250.0,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        const Color.fromARGB(255, 41, 72, 183),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12.0),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content:
+                                            Text('Applied to ${job.title}!'),
+                                        duration: const Duration(seconds: 2),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text(
+                                    'Apply to Job',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
               ),
@@ -536,14 +582,21 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: const Color.fromARGB(255, 41, 72, 183),
-        onPressed: () {
-          // TODO: Define Floating Action Button Action
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Offer Job button pressed!'),
-              duration: Duration(seconds: 2),
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AddJobScreen(),
             ),
           );
+
+          if (result == true) {
+            // Job was added successfully
+            setState(() {
+              // Refresh the jobs stream
+              _jobsStream = _jobService.getJobs();
+            });
+          }
         },
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text(

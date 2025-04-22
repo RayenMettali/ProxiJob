@@ -1,35 +1,64 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Cardmodel {
-  String title;
-  String jobDescription;
-  String description;
-  String image;
+  final String id;
+  final String title;
+  final String description;
+  final String jobDescription;
+  final String image;
+  final DateTime timestamp;
+  final String userId;
 
-  Cardmodel({required this.title, required this.description, required this.image, required this.jobDescription});
-  
+  Cardmodel({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.jobDescription,
+    required this.image,
+    required this.timestamp,
+    required this.userId,
+  });
+
+  // Convert to Map for Firestore
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'jobDescription': jobDescription,
+      'image': image,
+      'timestamp': timestamp,
+      'userId': userId,
+    };
+  }
+
+  // Create from Firestore document
+  factory Cardmodel.fromFirestore(DocumentSnapshot doc) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    return Cardmodel(
+      id: doc.id,
+      title: data['title'] ?? '',
+      description: data['description'] ?? '',
+      jobDescription: data['jobDescription'] ?? '',
+      image: data['image'] ?? 'assets/images/civil-engineering.png',
+      timestamp: (data['timestamp'] as Timestamp).toDate(),
+      userId: data['userId'] ?? '',
+    );
+  }
+
+  // Static method to get dummy cards (for testing)
   static List<Cardmodel> getCards() {
-    return <Cardmodel>[
+    return [
       Cardmodel(
-          title: 'Software Development',
-          description: 'Tunis, Tunisia',
-          jobDescription: "lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua  ",
-          image: 'assets/images/meta.png'),
-      Cardmodel(
-          title: 'Design',
-          description: 'Tunis, Tunisia',
-          jobDescription: "lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua  ",
-          image: 'assets/images/EY.svg'),
-      Cardmodel(
-          title: 'Marketing',
-          description: 'Tunis, Tunisia',
-          jobDescription: "lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua  ",
-          image: 'assets/images/marketing.svg'),
-      Cardmodel(
-          title: 'Finance',
-          description: 'Tunis, Tunisia',
-          jobDescription: "lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua  ",
-          image: 'assets/images/Nvidia.svg'),
-      
+        id: '1',
+        title: 'Software Engineer',
+        description: 'Full-time position',
+        jobDescription: 'Looking for an experienced software engineer...',
+        image: 'assets/images/software-development.png',
+        timestamp: DateTime.now(),
+        userId: '',
+      ),
+      // Add more dummy cards as needed
     ];
   }
 }
