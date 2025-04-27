@@ -12,6 +12,7 @@ import 'package:proxi_job/screens/signin_screen.dart';
 import 'package:proxi_job/screens/profile_screen.dart';
 import 'package:proxi_job/screens/add_job_screen.dart';
 import 'package:proxi_job/screens/business_screen.dart';
+import 'package:proxi_job/screens/job_applying_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -536,14 +537,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   onPressed: () async {
                                     try {
-                                      await _applicationService.applyForJob(
-                                          job.id, job.title);
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                              'Successfully applied for the job!'),
-                                          duration: Duration(seconds: 2),
+                                      // Navigate to ApplyJobScreen
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              ApplyJobScreen(),
                                         ),
                                       );
                                     } catch (e) {
@@ -551,7 +550,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                           .showSnackBar(
                                         SnackBar(
                                           content: Text(e.toString()),
-                                          duration: const Duration(seconds: 2),
+                                          duration:
+                                              const Duration(seconds: 2),
                                         ),
                                       );
                                     }
